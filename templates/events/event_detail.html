@@ -1,3 +1,4 @@
+{# templates/events/event_detail.html #}
 {% extends 'base.html' %}
 {% load static %}
 
@@ -7,8 +8,8 @@
 <div class="event-detail">
     <h2>{{ event.title }}</h2>
 
-    <div class="event-detail-layout"> {# Optional layout wrapper #}
-        <div class="event-detail-image-container"> {# Image column #}
+    <div class="event-detail-layout">
+        <div class="event-detail-image-container">
             {% if event.image_url %}
                 <img src="{{ event.image_url }}" alt="{{ event.title }} image" class="event-image-large">
             {% else %}
@@ -16,7 +17,7 @@
             {% endif %}
         </div>
 
-        <div class="event-detail-info-container"> {# Info column #}
+        <div class="event-detail-info-container">
             <div class="event-info">
                 <p><strong>When:</strong>
                     {{ event.start_datetime|date:"l, F j, Y" }} from
@@ -24,14 +25,18 @@
                     {{ event.end_datetime|date:"P" }}
                 </p>
                 <p><strong>Where:</strong> {{ event.location }}</p>
-                <p class="event-price-prominent"><strong>Price:</strong> ${{ event.price|floatformat:2 }}</p> {# Prominent price #}
+                <p class="event-price-prominent"><strong>Price:</strong> ${{ event.price|floatformat:2 }}</p>
             </div>
 
             <div class="event-actions">
-                <form action="{% url 'cart:cart_add' event.id %}" method="post">
+                {# Updated Add to Cart Form #}
+                <form action="{% url 'cart:cart_add' event.id %}" method="post" style="display: flex; align-items: center;">
                     {% csrf_token %}
-                    <input type="hidden" name="quantity" value="1">
-                    <button type="submit" class="btn btn-primary btn-add-cart">Add to Cart</button> {# Use btn classes #}
+                    {# Visible number input for quantity #}
+                    <label for="id_quantity_{{ event.id }}" style="margin-right: 5px; font-weight: bold;">Qty:</label>
+                    <input type="number" name="quantity" value="1" min="1" id="id_quantity_{{ event.id }}" required
+                           style="width: 60px; padding: 8px; border: 1px solid #ccc; border-radius: 4px; margin-right: 10px;">
+                    <button type="submit" class="btn btn-primary btn-add-cart">Add to Cart</button>
                 </form>
             </div>
 
@@ -40,7 +45,7 @@
                 <p>{{ event.description|linebreaks }}</p>
             </div>
         </div>
-    </div> {# End layout wrapper #}
+    </div>
 
     <a href="{% url 'event_catalog' %}" class="back-link">« Back to Catalog</a>
 </div>
