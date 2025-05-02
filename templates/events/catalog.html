@@ -1,0 +1,39 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Upcoming Events - Chivent{% endblock %}
+
+{% block content %}
+<h2>Upcoming Events</h2>
+
+<div class="event-list">
+    {% if events %}
+        {% for event in events %}
+            <div class="event-card">
+                <a href="{% url 'event_detail' event.id %}" class="event-image-link"> {# Link the image #}
+                    {% if event.image_url %}
+                        <img src="{{ event.image_url }}" alt="{{ event.title }} image" class="event-image">
+                    {% else %}
+                        <img src="{% static 'images/placeholder.png' %}" alt="Placeholder image" class="event-image">
+                    {% endif %}
+                </a>
+                <div class="event-card-content"> {# Wrap content #}
+                    <h3><a href="{% url 'event_detail' event.id %}">{{ event.title }}</a></h3>
+                    <p class="event-date">
+                        {{ event.start_datetime|date:"D, M d, Y P" }}
+                    </p>
+                    <p class="event-location">{{ event.location }}</p>
+                    <p class="event-description-short">{{ event.description|truncatewords:25 }}</p>
+
+                    <div class="event-card-footer"> {# Footer inside content #}
+                        <span class="event-price">${{ event.price|floatformat:2 }}</span>
+                        <a href="{% url 'event_detail' event.id %}" class="btn btn-secondary">View Details</a> {# Use btn classes #}
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+    {% else %}
+        <p>No events scheduled at this time. Check back soon!</p>
+    {% endif %}
+</div>
+{% endblock %}

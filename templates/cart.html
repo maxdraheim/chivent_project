@@ -1,0 +1,51 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Your Shopping Cart - Chivent{% endblock %}
+
+{% block content %}
+<h2>Your Shopping Cart</h2>
+
+{% if cart %}
+    <table class="cart-table">
+        <!-- ... table head ... -->
+        <tbody>
+            {% for item in cart %}
+                {% with event=item.event %}
+                <tr>
+                    <td>
+                        <a href="{% url 'event_detail' event.id %}">{{ event.title }}</a>
+                        <br>
+                        <small>{{ event.start_datetime|date:"D, M d, P" }}</small>
+                    </td>
+                    <td>${{ item.price|floatformat:2 }}</td>
+                    <td>{{ item.quantity }}</td>
+                    <td>${{ item.total_price|floatformat:2 }}</td>
+                    <td>
+                        <form action="{% url 'cart:cart_remove' event.id %}" method="post">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-danger btn-remove">Remove</button> {# Use btn classes #}
+                        </form>
+                    </td>
+                </tr>
+                {% endwith %}
+            {% endfor %}
+            <tr class="cart-total">
+                <td colspan="3"><strong>Total</strong></td>
+                <td colspan="2"><strong>${{ cart.get_total_price|floatformat:2 }}</strong></td>
+            </tr>
+        </tbody>
+    </table>
+
+    <div class="cart-actions">
+        <a href="#" class="btn btn-primary btn-checkout">Proceed to Checkout (Not Implemented)</a>
+        <a href="{% url 'event_catalog' %}" class="btn btn-secondary btn-continue">Continue Shopping</a> {# Use btn classes #}
+    </div>
+
+{% else %}
+    <div class="cart-empty-message"> {# Add class for styling #}
+        <p>Your cart is currently empty.</p>
+        <a href="{% url 'event_catalog' %}" class="btn btn-secondary btn-continue">Browse Events</a> {# Use btn classes #}
+    </div>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,47 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ event.title }} - Chivent{% endblock %}
+
+{% block content %}
+<div class="event-detail">
+    <h2>{{ event.title }}</h2>
+
+    <div class="event-detail-layout"> {# Optional layout wrapper #}
+        <div class="event-detail-image-container"> {# Image column #}
+            {% if event.image_url %}
+                <img src="{{ event.image_url }}" alt="{{ event.title }} image" class="event-image-large">
+            {% else %}
+                <img src="{% static 'images/placeholder.png' %}" alt="Placeholder image" class="event-image-large">
+            {% endif %}
+        </div>
+
+        <div class="event-detail-info-container"> {# Info column #}
+            <div class="event-info">
+                <p><strong>When:</strong>
+                    {{ event.start_datetime|date:"l, F j, Y" }} from
+                    {{ event.start_datetime|date:"P" }} to
+                    {{ event.end_datetime|date:"P" }}
+                </p>
+                <p><strong>Where:</strong> {{ event.location }}</p>
+                <p class="event-price-prominent"><strong>Price:</strong> ${{ event.price|floatformat:2 }}</p> {# Prominent price #}
+            </div>
+
+            <div class="event-actions">
+                <form action="{% url 'cart:cart_add' event.id %}" method="post">
+                    {% csrf_token %}
+                    <input type="hidden" name="quantity" value="1">
+                    <button type="submit" class="btn btn-primary btn-add-cart">Add to Cart</button> {# Use btn classes #}
+                </form>
+            </div>
+
+            <div class="event-description-full">
+                <h3>Description</h3>
+                <p>{{ event.description|linebreaks }}</p>
+            </div>
+        </div>
+    </div> {# End layout wrapper #}
+
+    <a href="{% url 'event_catalog' %}" class="back-link">« Back to Catalog</a>
+</div>
+{% endblock %}
