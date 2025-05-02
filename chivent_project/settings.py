@@ -12,6 +12,8 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 
 from pathlib import Path
 
+import dj_database_url
+import os
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -19,14 +21,51 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = "django-insecure-chjyh$ko=0s6ex^6+t)-6#mtxvcodj2a*pd(8mk48+gv@jduwj"
-
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.environ.get('DEBUG', 'False') == 'True'
 
-ALLOWED_HOSTS = []
+# SECURITY WARNING: keep the secret key used in production secret!
+SECRET_KEY = os.environ.get('SECRET_KEY')
+# Add a check for local development if SECRET_KEY env var isn't set
+if not SECRET_KEY and DEBUG:
+     SECRET_KEY = "django-insecure-chjyh$ko=0s6ex^6+t)-6#mtxvcodj2a*pd(8mk48+gv@jduwj" # my local key
+elif not SECRET_KEY and not DEBUG:
+     raise ValueError("No SECRET_KEY set for production")
 
+
+
+
+
+ALLOWED_HOSTS_STRING = os.environ.get('ALLOWED_HOSTS')
+if ALLOWED_HOSTS_STRING:
+    ALLOWED_HOSTS = ALLOWED_HOSTS_STRING.split(',')
+else:
+    ALLOWED_HOSTS = []
+
+# add localhost for local testing with DEBUG=False
+if DEBUG:
+    ALLOWED_HOSTS.append('127.0.0.1')
+    ALLOWED_HOSTS.append('localhost')
+
+# Add Render's domain automatically if on Render
+RENDER_EXTERNAL_HOSTNAME = os.environ.get('RENDER_EXTERNAL_HOSTNAME')
+if RENDER_EXTERNAL_HOSTNAME:
+    ALLOWED_HOSTS.append(RENDER_EXTERNAL_HOSTNAME)
+
+
+CSRF_TRUSTED_ORIGINS_STRING = os.environ.get('CSRF_TRUSTED_ORIGINS')
+if CSRF_TRUSTED_ORIGINS_STRING:
+    CSRF_TRUSTED_ORIGINS = CSRF_TRUSTED_ORIGINS_STRING.split(',')
+else:
+     # Default for local development
+     CSRF_TRUSTED_ORIGINS = ['http://localhost:8000', 'http://127.0.0.1:8000']
+
+# Add Render's domain automatically if on Render and using HTTPS
+if RENDER_EXTERNAL_HOSTNAME:
+     # Ensure it starts with https://
+     render_https_url = f'https://{RENDER_EXTERNAL_HOSTNAME}'
+     if render_https_url not in CSRF_TRUSTED_ORIGINS:
+          CSRF_TRUSTED_ORIGINS.append(render_https_url)
 
 # Application definition
 
@@ -43,6 +82,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
@@ -77,10 +117,10 @@ WSGI_APPLICATION = "chivent_project.wsgi.application"
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
 DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / "db.sqlite3",
-    }
+    'default': dj_database_url.config( # Use dj-database-url
+        # Fallback to SQLite if DATABASE_URL env var is not set
+        default=f'sqlite:///{BASE_DIR / "db.sqlite3"}',
+    )
 }
 
 
@@ -123,6 +163,9 @@ STATIC_URL = "/static/"
 STATICFILES_DIRS = [
     BASE_DIR / 'static',
 ]
+#added for deployment
+STATIC_ROOT = BASE_DIR / 'staticfiles'
+
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
